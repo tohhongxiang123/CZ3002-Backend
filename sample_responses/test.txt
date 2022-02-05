@@ -1,0 +1,8 @@
+https://developers.onemap.sg/privateapi/routingsvc/route?
+    start=1.3328572%2C103.74355220000007&
+    end=1.32283828324684%2C103.936051543997&
+    routeType=pt&
+    token=YOURTOKENHERE&
+    date=2022-02-05&
+    time=12%3A00%3A00&
+    mode=TRANSIT

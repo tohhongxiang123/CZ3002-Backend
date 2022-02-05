@@ -1,0 +1,11 @@
+{
+    "start": "1.347246338814115,103.68116502050015", // ntu
+    "end": "1.4421569296389722,103.82549685118835", // boulder planet
+    "routeType": "pt", // public transport
+    "token": "YOUR TOKEN HERE", // token
+    "date": "2022-02-05", // YYYY-MM-DD
+    "time": "12:00:00", // HH-MM-SS
+    "mode": "transit",
+    "maxWalkDistance": -1, // max walk distance, optional
+    "numItineraries": 3 // limits number of return results, optional
+}

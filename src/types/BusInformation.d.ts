@@ -1,0 +1,15 @@
+export interface BusInformation {
+    id: number,
+    ServiceNo: string,
+    Operator: string,
+    Direction: number,
+    StopSequence: number,
+    BusStopCode: number,
+    Distance: string,
+    WD_FirstBus: string,
+    WD_LastBus: string,
+    SAT_FirstBus: string,
+    SAT_LastBus: string,
+    SUN_FirstBus: string,
+    SUN_LastBus: string,
+}

@@ -17,6 +17,39 @@ npm run dev
 
 Files to develop on are usually under `src`. Everything outside `src` are scripts and config files
 
+# Current Stack
+
+- NodeJS
+- Typescript
+- Express
+- Onemap API
+- Supabase to store data
+
 # API Documentation
 
+## GET `/routes`
+
+Gets the last available route for the day between a start and end
+
+- Params:
+    - `start`: Start coordinates of route
+    - `end`: End coordinates of route
+- E.g. `http://localhost:8000/routes?start=1.3560476964747572,103.98794615682894&end=1.343029314255734,103.95363507401602`
+- Returns:
+    - On success, `{ data: RouteStep[] }`
+    - On failure, `{ data: null, error: true, message: string }`
+
+## GET `/bus-timings`
+
+Gets the bus timings for a specific bus number, at a specific bus stop
+- Check `types/BusInformation.d.ts` for the received format
+
+## GET `/train-timings`
+
+Gets the train timings at a specific train station
+- Check `types/TrainInformation.d.ts` for the received format
+
+# Resources
+
 - https://www.onemap.gov.sg/docs/#introduction
+- https://supabase.com/docs/reference/javascript/supabase-client

@@ -1,8 +1,9 @@
 import { API_URL } from "../constants"
 import fetch from 'node-fetch'
 
+
 /**
- * 
+ * https://www.onemap.gov.sg/docs/#authentication-service-post
  * @returns Access token for onemap api
  */
 const getAuthToken = async () => {

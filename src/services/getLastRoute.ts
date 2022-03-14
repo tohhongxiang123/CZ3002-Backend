@@ -1,25 +1,18 @@
-import fetch from "node-fetch"
-import { API_URL } from "../constants"
-import { OneMapRouteResponse } from "../types"
-import getAuthToken from "./getAuthToken"
-import getBusInformation from "./getBusInformation"
-import getTrainInformation from "./getTrainInformation"
+import getRoute from "./getRoute"
+import getPublicTransportTimingFromRoute from "./getPublicTransportTimingFromRoute"
 
-type GetRouteParams = {
+type GetLastRouteParams = {
     start: [number, number],
     end: [number, number],
 }
 
 /**
- * @param {GetRouteParams} params
+ * @param {GetLastRouteParams} params
  * @property {string} start The start point in lat,lng (WGS84) format.
  * @property {string} end The end point in lat,lng (WGS84) format
  */
-const getLastRoute = async (params: GetRouteParams) => {
+const createGetLastRoute = () => async (params: GetLastRouteParams) => {
     // prepare data
-    const start = `${params.start[0]},${params.start[1]}`
-    const end = `${params.end[0]},${params.end[1]}`
-    const token = await getAuthToken()
 
     const currentDateAndTime = new Date() // get current datetime
     const date = currentDateAndTime.toISOString().
@@ -29,11 +22,12 @@ const getLastRoute = async (params: GetRouteParams) => {
     const time = "12:00:00" // set a default time first, to find a route
 
     // fetch from API
-    const data = await fetch(`${API_URL}/routingsvc/route?` + new URLSearchParams({
-        start, end, token, date, time, routeType: "pt", mode: "transit"
-    })).then(res => res.json()) as OneMapRouteResponse
+    const data = await getRoute({ ...params, date, time })
 
-    // return null if no itinerary exists
+    // throw errors
+    if ((data as any)['error']) {
+        throw new Error((data as any)['error'])
+    }
     if (!data.plan.itineraries || data.plan.itineraries.length == 0) {
         throw new Error("No route found")
     }
@@ -43,67 +37,8 @@ const getLastRoute = async (params: GetRouteParams) => {
 
     // get timing information and duration only from each step in the route
     // used to calculate the time to start the journey
-    const information = [] as { lastTiming: string | null, duration: number }[] // duration is in seconds, last timing is 24h format string
     const todaysDay = currentDateAndTime.getDay()
-    
-    for (let i = 0; i < route.length; i++) {
-        const leg = route[i]
-        const duration = leg.duration // duration is in seconds
-        const from = leg.from.name
-        const to = leg.to.name
-
-        const mode = leg.mode // WALK, BUS, SUBWAY
-        if (mode === "BUS") {
-            const busNumber = leg.route // get bus number
-            const startingBusStopCode = leg.from.stopCode!
-            const stopSequence = leg.from.stopSequence!
-
-            // get bus last timing based on stop sequence and day of week
-            const busInformation = await getBusInformation(busNumber, startingBusStopCode)
-
-            if (!busInformation) {
-                throw new Error(`No bus information for bus number ${busNumber} at bus stop ${startingBusStopCode}`)
-            }
-
-            let busTimings = busInformation.find(time => time.StopSequence === stopSequence) // find correct stop sequence
-
-            let lastTiming;
-            if (!busTimings) { // if there is no last bus
-                lastTiming = null
-            } else if (todaysDay === 0) { // if today is a sunday
-                lastTiming = busTimings.SUN_LastBus
-            } else if (todaysDay === 6) { // if today is a saturday
-                lastTiming = busTimings.SAT_LastBus
-            } else { // if today is a weekday
-                lastTiming = busTimings.WD_LastBus
-            }
-
-            information.push({ lastTiming, duration })
-        } else if (mode === "SUBWAY") {
-            const line = leg.route // get mrt line
-            const startingMrtStopCode = leg.from.stopCode!
-            const endingMrtStopCode = leg.to.stopCode!
-            const startingMrtSequenceNumber = leg.from.stopSequence!
-            const endingMrtSequenceNumber = leg.to.stopSequence!
-            const route = leg.route
-
-            // get last arrival time for mrt at startingStop
-            const trainInformation = await getTrainInformation(startingMrtStopCode)
-
-            if (!trainInformation) {
-                throw new Error(`Undefined train information for code ${startingMrtStopCode}`)
-            }
-
-            const direction = getDirection(startingMrtSequenceNumber, endingMrtSequenceNumber, route)
-            const lastTiming = trainInformation.lines
-                .find((line: any) => line.line === route)!.timings
-                .find((timing: any) => timing.dest === direction)!.last
-
-            information.push({ lastTiming, duration })
-        } else {
-            information.push({ lastTiming: null, duration })
-        }
-    }
+    const information = await getPublicTransportTimingFromRoute(route, todaysDay)
 
     // get the public transport timing that ends the earliest
     let minTimingIndex = -1
@@ -150,66 +85,5 @@ const getLastRoute = async (params: GetRouteParams) => {
     return route
 }
 
+const getLastRoute = createGetLastRoute()
 export default getLastRoute
-
-/**
- * 
- * @param startingMrtStopCode Stop code of starting MRT station, e.g. NS1
- * @param endingMrtStopCode Stop code of ending MRT station, e.g. NS11
- * @return Direction to check
- */
-function getDirection(startingMrtSequenceNumber: number, endingMrtSequenceNumber: number, route: string) {
-    if (route === "CG") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Tanah Merah"
-        } else {
-            return "Changi Airport"
-        }
-    } else if (route === "EW") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Pasir Ris"
-        } else {
-            return "Tuas Link"
-        }
-    } else if (route === "NS") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Marina South Pier"
-        } else {
-            return "Jurong East"
-        }
-    } else if (route === "CE") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Stadium"
-        } else {
-            return "Marina South Pier"
-        }
-    } else if (route === "CC") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "HarbourFront"
-        } else {
-            return "Dhoby Ghaut"
-        }
-    } else if (route === "DT") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Expo"
-        } else {
-            return "Bukit Panjang"
-        }
-    } else if (route === "BP") {
-        return "Choa Chu Kang"
-    } else if (route === "NE") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Punggol"
-        } else {
-            return "HarbourFront"
-        }
-    } else if (route === "SW") {
-        return "West Loop (Anti-Clockwise)"
-    } else if (route === "SE") {
-        return "East Loop (Clockwise)"
-    } else if (route === "PW") {
-        return "West Loop (Anti-Clockwise)"
-    } else {
-        return "East Loop (Anti-Clockwise)"
-    }
-}

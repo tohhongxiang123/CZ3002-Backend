@@ -1,4 +1,4 @@
-import getRoute from "./getRoute"
+import getRoute, { IGetRoute } from "./getRoute"
 import getPublicTransportTimingFromRoute from "./getPublicTransportTimingFromRoute"
 
 type GetLastRouteParams = {
@@ -6,14 +6,8 @@ type GetLastRouteParams = {
     end: [number, number],
 }
 
-/**
- * @param {GetLastRouteParams} params
- * @property {string} start The start point in lat,lng (WGS84) format.
- * @property {string} end The end point in lat,lng (WGS84) format
- */
-const createGetLastRoute = () => async (params: GetLastRouteParams) => {
+export const createGetLastRoute = (getRoute: IGetRoute) => async (params: GetLastRouteParams) => {
     // prepare data
-
     const currentDateAndTime = new Date() // get current datetime
     const date = currentDateAndTime.toISOString().
         replace(/T/, ' ').      // replace T with a space
@@ -21,19 +15,8 @@ const createGetLastRoute = () => async (params: GetLastRouteParams) => {
         .split(' ')[0]
     const time = "12:00:00" // set a default time first, to find a route
 
-    // fetch from API
-    const data = await getRoute({ ...params, date, time })
-
-    // throw errors
-    if ((data as any)['error']) {
-        throw new Error((data as any)['error'])
-    }
-    if (!data.plan.itineraries || data.plan.itineraries.length == 0) {
-        throw new Error("No route found")
-    }
-
     // get route
-    const route = data.plan.itineraries[0].legs!
+    const route = await getRoute({ ...params, date, time })
 
     // get timing information and duration only from each step in the route
     // used to calculate the time to start the journey
@@ -85,5 +68,10 @@ const createGetLastRoute = () => async (params: GetLastRouteParams) => {
     return route
 }
 
-const getLastRoute = createGetLastRoute()
+/**
+ * @param {GetLastRouteParams} params
+ * @property {string} start The start point in lat,lng (WGS84) format.
+ * @property {string} end The end point in lat,lng (WGS84) format
+ */
+const getLastRoute = createGetLastRoute(getRoute)
 export default getLastRoute

@@ -1,68 +1,7 @@
 import { LegsEntity } from "../types/OneMapResponse"
 import getBusInformation from "./getBusInformation"
 import getTrainInformation from "./getTrainInformation"
-
-/**
- * 
- * @param startingMrtStopCode Stop code of starting MRT station, e.g. NS1
- * @param endingMrtStopCode Stop code of ending MRT station, e.g. NS11
- * @return Direction to check
- */
- function getDirection(startingMrtSequenceNumber: number, endingMrtSequenceNumber: number, route: string) {
-    if (route === "CG") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Tanah Merah"
-        } else {
-            return "Changi Airport"
-        }
-    } else if (route === "EW") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Pasir Ris"
-        } else {
-            return "Tuas Link"
-        }
-    } else if (route === "NS") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Marina South Pier"
-        } else {
-            return "Jurong East"
-        }
-    } else if (route === "CE") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Stadium"
-        } else {
-            return "Marina South Pier"
-        }
-    } else if (route === "CC") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "HarbourFront"
-        } else {
-            return "Dhoby Ghaut"
-        }
-    } else if (route === "DT") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Expo"
-        } else {
-            return "Bukit Panjang"
-        }
-    } else if (route === "BP") {
-        return "Choa Chu Kang"
-    } else if (route === "NE") {
-        if (startingMrtSequenceNumber < endingMrtSequenceNumber) {
-            return "Punggol"
-        } else {
-            return "HarbourFront"
-        }
-    } else if (route === "SW") {
-        return "West Loop (Anti-Clockwise)"
-    } else if (route === "SE") {
-        return "East Loop (Clockwise)"
-    } else if (route === "PW") {
-        return "West Loop (Anti-Clockwise)"
-    } else {
-        return "East Loop (Anti-Clockwise)"
-    }
-}
+import getDirection from "./getDirection"
 
 /**
  * From a given route, for each leg, find all the latest timing that each public transport operates until 
@@ -71,7 +10,7 @@ import getTrainInformation from "./getTrainInformation"
  * @param todaysDay - The day for today (0-6, 0 being sunday and 6 being saturday)
  * @returns An array which contains the lastTiming and duration information for each leg, corresponding to the route
  */
-async function getPublicTransportTimingFromRoute(route: LegsEntity[], todaysDay: number) {
+export async function getPublicTransportTimingFromRoute(route: LegsEntity[], todaysDay: number) {
     const information = [] as { lastTiming: string | null, duration: number }[] // duration is in seconds, last timing is 24h format string
     // const todaysDay = currentDateAndTime.getDay()
     

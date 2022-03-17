@@ -17,6 +17,14 @@ npm run dev
 
 Files to develop on are usually under `src`. Everything outside `src` are scripts and config files
 
+# Testing
+
+To run tests, run the following command
+
+```
+npm run test
+```
+
 # Current Stack
 
 - NodeJS

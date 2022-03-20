@@ -8,7 +8,11 @@ const getBusInformation = async (busNumber: string, busStopCode: string) => {
         .eq('BusStopCode', busStopCode)
 
     if (!data) {
-        return data
+        return null
+    }
+
+    if (data.length === 0) {
+        return null
     }
 
     return data as BusInformation[]

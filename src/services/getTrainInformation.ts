@@ -1,6 +1,11 @@
 import { TrainInformation } from '../types'
 import client from './supabaseClient'
 
+/**
+ * 
+ * @param trainStationStopCode The code for the train station, e.g. EW8, NS2, CE1
+ * @returns Train information if found, else null
+ */
 const getTrainInformation = async (trainStationStopCode: string) => {
     const { data } = await client.from('train-information')
     .select("*")
@@ -8,7 +13,7 @@ const getTrainInformation = async (trainStationStopCode: string) => {
 
     // nothing was found
     if (!data) {
-        return data
+        return null
     }
     
     // for each piece of data

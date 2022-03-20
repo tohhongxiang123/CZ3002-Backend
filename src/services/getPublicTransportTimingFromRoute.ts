@@ -13,7 +13,7 @@ import getDirection from "./getDirection"
 export async function getPublicTransportTimingFromRoute(route: LegsEntity[], todaysDay: number) {
     const information = [] as { lastTiming: string | null, duration: number }[] // duration is in seconds, last timing is 24h format string
     // const todaysDay = currentDateAndTime.getDay()
-    
+
     for (let i = 0; i < route.length; i++) {
         const leg = route[i]
         const duration = leg.duration // duration is in seconds
@@ -22,7 +22,7 @@ export async function getPublicTransportTimingFromRoute(route: LegsEntity[], tod
 
         const mode = leg.mode // WALK, BUS, SUBWAY
         if (mode === "BUS") {
-            const busNumber = leg.route // get bus number
+            const busNumber = leg.route.split(" / ")[0] // get bus number
             const startingBusStopCode = leg.from.stopCode!
             const stopSequence = leg.from.stopSequence!
 

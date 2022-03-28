@@ -34,6 +34,7 @@ export default async function getRoute(params: GetRouteParams) {
         start, end, token, date, time, routeType: "pt", mode: "transit"
     })).then(res => res.json()) as OneMapRouteResponse
 
+    console.log(data)
     // throw errors
     if ((data as any)['error']) {
         throw new Error((data as any)['error'])
